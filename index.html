@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Моя Змейка</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #101820;
+  color: white;
+  font-family: sans-serif;
+  text-align: center;
+  padding: 20px 12px;
+}
+h1 { color: #64ff9a; }
+#score { font-size: 22px; margin: 16px; }
+canvas {
+  width: min(90vw, 360px);
+  height: min(90vw, 360px);
+  background: #1d2a32;
+  border: 2px solid #64ff9a;
+  border-radius: 8px;
+}
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, 68px);
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+button {
+  background: #263b45;
+  color: white;
+  border: 1px solid #64ff9a;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 22px;
+}
+#restart { font-size: 16px; margin-top: 15px; }
+</style>
+</head>
+<body>
+<h1>🐍 Моя Змейка</h1>
+<div id="score">Счёт: 0</div>
+<canvas id="game" width="360" height="360"></canvas>
+
+<div class="controls">
+  <span></span><button onclick="turn(0,-1)">⬆️</button><span></span>
+  <button onclick="turn(-1,0)">⬅️</button>
+  <button onclick="turn(0,1)">⬇️</button>
+  <button onclick="turn(1,0)">➡️</button>
+</div>
+<button id="restart" onclick="start()">Начать заново</button>
+<p id="message">Нажми стрелку, чтобы начать!</p>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const size = 18;
+let snake, food, dx, dy, score, timer, alive;
+
+function start() {
+  clearInterval(timer);
+  snake = [{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+  food = {x:15,y:10};
+  dx = 1; dy = 0;
+  score = 0; alive = true;
+  document.getElementById('score').textContent = 'Счёт: 0';
+  document.getElementById('message').textContent = 'Играй!';
+  draw();
+  timer = setInterval(step, 130);
+}
+
+function turn(x,y) {
+  if (x === -dx && y === -dy) return;
+  dx = x; dy = y;
+}
+
+function step() {
+  if (!alive) return;
+  const head = {x:snake[0].x+dx, y:snake[0].y+dy};
+  if (head.x<0 || head.y<0 || head.x>=20 || head.y>=20 ||
+      snake.some(p => p.x===head.x && p.y===head.y)) {
+    alive = false;
+    document.getElementById('message').textContent =
+      'Игра окончена! Счёт: ' + score;
+    clearInterval(timer);
+    return;
+  }
+  snake.unshift(head);
+  if (head.x===food.x && head.y===food.y) {
+    score++;
+    document.getElementById('score').textContent = 'Счёт: '+score;
+    do {
+      food = {x:Math.floor(Math.random()*20),
+              y:Math.floor(Math.random()*20)};
+    } while (snake.some(p=>p.x===food.x && p.y===food.y));
+  } else {
+    snake.pop();
+  }
+  draw();
+}
+
+function draw() {
+  ctx.fillStyle = '#1d2a32';
+  ctx.fillRect(0,0,360,360);
+  ctx.fillStyle = '#ff647c';
+  ctx.fillRect(food.x*18,food.y*18,16,16);
+  snake.forEach((p,i)=>{
+    ctx.fillStyle = i===0 ? '#a0ffba' : '#42d879';
+    ctx.fillRect(p.x*18,p.y*18,16,16);
+  });
+}
+
+document.addEventListener('keydown', e=>{
+  if (e.key==='ArrowUp') turn(0,-1);
+  if (e.key==='ArrowDown') turn(0,1);
+  if (e.key==='ArrowLeft') turn(-1,0);
+  if (e.key==='ArrowRight') turn(1,0);
+});
+
+start();
+</script>
+</body>
+</html>
